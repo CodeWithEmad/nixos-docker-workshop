@@ -15,14 +15,23 @@ A disposable Nix environment for learning without installing Nix on each laptop.
 From this directory:
 
 ```bash
+# Start a throwaway container from the "nix" service in docker-compose.yml
+# and open a shell in it. --rm deletes the container when you exit.
 docker compose run --rm nix
 ```
 
 Inside the container:
 
 ```bash
+# Print the installed Nix version (checks Nix works)
 nix --version
+
+# Evaluate a Nix expression and print the result (prints 2)
 nix eval --expr '1 + 1'
+
+# Download the "hello" package from nixpkgs (the package collection),
+# then run `hello` inside a temporary shell. -c = command to run.
+# Nothing is installed permanently.
 nix shell nixpkgs#hello -c hello
 ```
 
@@ -31,7 +40,11 @@ Exit with `exit`. Files in `workspace/` are shared with your host.
 ## Build the example package
 
 ```bash
+# Build the package defined in hello.nix. Nix stores it in /nix/store
+# and creates a `result` symlink in the current directory pointing to it.
 nix-build /workspace/hello.nix
+
+# Run the program from the built package (prints the greeting)
 ./result/bin/hello-workshop
 ```
 
@@ -42,16 +55,29 @@ Open `workspace/configuration.nix`. It illustrates hostname, timezone, SSH, pack
 ## More commands
 
 ```bash
+# Call a built-in Nix function: add 20 and 22 (prints 42)
 nix eval --expr 'builtins.add 20 22'
+
+# Open an interactive shell with git and htop available.
+# Several packages can be listed. `exit` leaves the shell; they disappear.
 nix shell nixpkgs#git nixpkgs#htop
+
+# Run one command from a package, then return to your normal shell
 nix shell nixpkgs#hello -c hello
+
+# Rebuild the example package (same as in "Build the example package")
 nix-build /workspace/hello.nix
 ```
+
+`nixpkgs#hello` means "package `hello` from the `nixpkgs` collection".
 
 ## Cleanup
 
 ```bash
+# Stop and remove containers/networks created by docker-compose.yml
 docker compose down
+
+# Delete the downloaded Nix image to free disk space
 docker image rm nixos/nix:2.35.5
 ```
 
